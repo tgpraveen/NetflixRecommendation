@@ -27,7 +27,7 @@ def main(separator='\t'):
 			rating = rank[:(len(rank)-1)]+str(norm_rating)
 			l.append(rating)
 		
-		delim=','	
+		delim='#'	
 		print "%s%s%s%s%s" % (current_word, separator,l,delim ,avg)
 #		print current_word +separator+str(l)
 

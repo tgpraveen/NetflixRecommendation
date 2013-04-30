@@ -1,6 +1,6 @@
 
 function UVDecompose(fileName)
-  global udim1 = 2649429;
+  global udim1 = 480189;
   global vdim2 = 17770;
   initializeM(fileName);
   uvdMain();
@@ -12,7 +12,7 @@ function uvdMain()
   #Or we could add a value uniformly chosen from the range −c to +c for some c.
   #We are varying c from -3 to +3.%}
 
-  c=-4;
+  c=c-4;
   prevrmse=0;
   a=3;
   d=1;
@@ -25,7 +25,7 @@ function uvdMain()
 
   while true
     if c<4
-      c++;
+      c = c+1;
     else break;
     end
     matrixval=sqrt(a/d)+c;
@@ -36,21 +36,17 @@ function uvdMain()
     pmatrix=umatrix*vmatrix;
 
     for i = 1:size(pmatrix)(1)
-      if validusers(1,i)
-        for j=1:size(pmatrix)(2)
-          pmatrix(i,j)=pmatrix(i,j)-mmatrix(i,j);
-        end
+      for j=1:size(pmatrix)(2)
+        pmatrix(i,j)=pmatrix(i,j)-mmatrix(i,j);
       end
     end
 
     rmse=0;
 
     for i = 1:size(pmatrix)(1)
-      if (validusers(1,i) != 0)
-        for j=1:size(pmatrix)(2)
-          #pmatrix(i,j)=pmatrix(i,j)-mmatrix(i,j);
-          rmse = rmse + (pmatrix(i,j)*pmatrix(i,j));
-        end
+      for j=1:size(pmatrix)(2)
+        #pmatrix(i,j)=pmatrix(i,j)-mmatrix(i,j);
+        rmse = rmse + (pmatrix(i,j)*pmatrix(i,j));
       end
     end
 
@@ -69,7 +65,7 @@ end
 
 function initializeM(fileName)
   global mmatrix;
-  global udim1;
+  global udim1 = 0;
   global vdim2;
   mmatrix = sparse(udim1, vdim2);
   global validUsers;
@@ -77,6 +73,7 @@ function initializeM(fileName)
 
   fid = fopen(fileName);
   tline = fgets(fid);
+  userNum = 1;
   while ischar(tline)
     tline
     digitStart = digitEnd = 1;
@@ -86,8 +83,8 @@ function initializeM(fileName)
     end
     userId=str2num(tline(digitStart:digitEnd-1));
     userId
-    validUsers(1, userId) = 1;
-    mmatrix(userId, :) = -10000;
+    validUsers(1, userNum) = userId;
+    mmatrix(userNum, :) = -10000;
 
     digitEnd=digitEnd+2;
     while(tline(digitEnd) != ']')
@@ -104,11 +101,12 @@ function initializeM(fileName)
       end
       rating = str2num(tline(digitStart:digitEnd-2));
       rating
-      mmatrix(userId, movieId) = rating;
+      mmatrix(userNum, movieId) = rating;
       if(tline(digitEnd) == ',')
-        digitEnd=digitEnd+2;
+        digitEnd=digitEnd+3;
       end
     end
     tline = fgets(fid);
+    userNum = userNum +1;
   end
 end

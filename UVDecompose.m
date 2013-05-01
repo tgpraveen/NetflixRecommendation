@@ -52,22 +52,22 @@ function uvdMain()
 
       while counter<=vdim2
         if umatrixturn==true
-          umatrix(r)(s)=0;
+          umatrix(r,s)=0;
           numerator=0;
           numeratorsummationterm=0;
           denominator=0;
           j=counter;
           for k=1:d
             if k~=s
-              numeratorsummationterm=numeratorsummationterm+(umatrix(r)(k)*vmatrix(k)(j));
+              numeratorsummationterm=numeratorsummationterm+(umatrix(r,k)*vmatrix(k,j));
             end
           end
-          if mmatrix(r)(j)>nullrating+1
-            numerator= numerator + (vmatrix(s)(j)*(mmatrix(r)(j)-numeratorsummationpart));
+          if mmatrix(r,j)>nullrating+1
+            numerator= numerator + (vmatrix(s,j)*(mmatrix(r,j)-numeratorsummationpart));
           end
-          denominator=denominator+(vmatrix(s)(j)*vmatrix(s)(j));
+          denominator=denominator+(vmatrix(s,j)*vmatrix(s,j));
 
-          umatrix(r)(s)=numerator/denominator;
+          umatrix(r,s)=numerator/denominator;
           if s~=d
             s=s+1;
           else 
@@ -83,20 +83,20 @@ function uvdMain()
         end
 
         if umatrixturn==false
-          vmatrix(r_v)(s_v)=0;
+          vmatrix(r_v,s_v)=0;
           numerator_v=0;
           numeratorsummationterm_v=0;
           denominator_v=0;
           j=counter;
           for k=1:d
             if k~=r_v
-              numeratorsummationterm_v=numeratorsummationterm_v+(umatrix(j)(k)*vmatrix(k)(s_v));
+              numeratorsummationterm_v=numeratorsummationterm_v+(umatrix(j,k)*vmatrix(k,s_v));
             end
           end
-          numerator_v= numerator_v + (umatrix(j)(r_v)*(mmatrix(r)(j)-numeratorsummationpart_v));
-          denominator_v=denominator_v+(vmatrix(j)(r_v)*vmatrix(j)(r_v));
+          numerator_v= numerator_v + (umatrix(j,r_v)*(mmatrix(r,j)-numeratorsummationpart_v));
+          denominator_v=denominator_v+(vmatrix(j,r_v)*vmatrix(j,r_v));
 
-          vmatrix(r_v)(s_v)=numerator_v/denominator_v;
+          vmatrix(r_v,s_v)=numerator_v/denominator_v;
 
           if r_v~=d
             r_v=r_v+1;
@@ -119,9 +119,10 @@ function uvdMain()
       %{RMSE CODE%}
       pmatrix=umatrix*vmatrix;
 
-      for i = 1:size(pmatrix)(1)
-        for j=1:size(pmatrix)(2)
-          if mmatrix(i)(j)>nullrating+1
+      sz = size(pmatrix);
+      for i = 1:sz(1)
+        for j=1:sz(2)
+          if mmatrix(i,j)>nullrating+1
             pmatrix(i,j)=pmatrix(i,j)-mmatrix(i,j);
           end
         end
@@ -129,10 +130,10 @@ function uvdMain()
 
       rmse=0;
 
-      for i = 1:size(pmatrix)(1)
-        for j=1:size(pmatrix)(2)
+      for i = 1:sz(1)
+        for j=1:sz(2)
           %pmatrix(i,j)=pmatrix(i,j)-mmatrix(i,j);
-          if mmatrix(i)(j)>nullrating+1
+          if mmatrix(i,j)>nullrating+1
             rmse = rmse + (pmatrix(i,j)*pmatrix(i,j));
           end
         end

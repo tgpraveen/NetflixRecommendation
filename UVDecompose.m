@@ -1,8 +1,8 @@
 
 function UVDecompose(fileName)
   global udim1;
-  udim1 = 480189;
-  %udim1 = 4801;
+  %udim1 = 480189;
+  udim1 = 4801;
   global vdim2 ;
   vdim2 = 17770;
   initializeM(fileName);
@@ -68,7 +68,7 @@ function uvdMain()
   global nullRating;
 
   umatrixturn=true;
-  breakone=false;
+  breakU=false;
 
   while true
     if c<4
@@ -90,10 +90,10 @@ function uvdMain()
       r_v = 1;
       s_v = 1;
 
-      breakone=false
-      breaktwo=false
-      while !(breakone==true && breaktwo == true)
-        if umatrixturn==true&&breakone==false
+      breakU=false
+      breakV=false
+      while !(breakU==true && breakV == true)
+        if umatrixturn==true&&breakU==false
           disp('umatrixturn')
           umatrix(r,s)=0;
           numerator=0;
@@ -121,21 +121,20 @@ function uvdMain()
               r=r+1;
               s=1;
             else 
-              breakone=true
+              breakU=true
             end
           end
           umatrixturn=false;
 
         end
 
-        if umatrixturn==false&&breaktwo==false
+        if umatrixturn==false&&breakV==false
           disp('vmatrixturn')
           vmatrix(r_v,s_v)=0;
           numerator_v=0;
           numeratorsummationterm_v=0;
           denominator_v=0;
           for i = 1:udim1
-            mmatrix(i, s_v)
             if mmatrix(i, s_v) > (nullRating+1)
               for k=1:d
                 if k~=r_v
@@ -158,7 +157,7 @@ function uvdMain()
               s_v=s_v+1;
               r_v=1;
             else 
-              breaktwo=true
+              breakV=true
             end
           end
         end			

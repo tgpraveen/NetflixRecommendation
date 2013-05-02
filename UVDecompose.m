@@ -1,8 +1,8 @@
 
 function UVDecompose(fileName)
   global udim1;
-  %udim1 = 480189;
-  udim1 = 4801;
+  udim1 = 480189;
+  %udim1 = 4801;
   global vdim2 ;
   vdim2 = 17770;
   initializeM(fileName);
@@ -66,14 +66,15 @@ function uvdMain()
   global mmatrix;
   global validUsers;
   global nullRating;
+  global bestU;
+  global bestV;
 
   umatrixturn=true;
-  breakU=false;
 
   while true
     if c<4
       c = c+1;
-      breakthree=false
+      breakthree=false;
     else
       break;
     end
@@ -90,11 +91,13 @@ function uvdMain()
       r_v = 1;
       s_v = 1;
 
-      breakU=false
-      breakV=false
+      breakU=false;
+      breakV=false;
       while !(breakU==true && breakV == true)
-        if umatrixturn==true&&breakU==false
+        if (umatrixturn==true) && (breakU==false)
           disp('umatrixturn')
+          r
+          s
           umatrix(r,s)=0;
           numerator=0;
           numeratorsummationterm=0;
@@ -124,12 +127,16 @@ function uvdMain()
               breakU=true
             end
           end
-          umatrixturn=false;
 
+          umatrixturn=false
         end
+        umatrixturn
+        breakV
 
-        if umatrixturn==false&&breakV==false
+        if (umatrixturn==false) && (breakV==false)
           disp('vmatrixturn')
+          r_v
+          s_v
           vmatrix(r_v,s_v)=0;
           numerator_v=0;
           numeratorsummationterm_v=0;
@@ -142,7 +149,7 @@ function uvdMain()
                 end
               end
               numerator_v = numerator_v + (umatrix(i,r_v)*(mmatrix(i,s_v)-numeratorsummationterm_v));
-              denominator_v = denominator_v+(vmatrix(i,r_v)*vmatrix(i,r_v));
+              denominator_v = denominator_v+(umatrix(i,r_v)*umatrix(i,r_v));
             end
           end
 
@@ -153,7 +160,7 @@ function uvdMain()
           if r_v~=d
             r_v=r_v+1;
           else
-            if s_v~=vdim1
+            if s_v~=vdim2
               s_v=s_v+1;
               r_v=1;
             else 
@@ -196,7 +203,12 @@ function uvdMain()
           breakthree=true
         end
         prev_rmse=rmse;
+        bestU=umatrix;
+        bestV=vmatrix;
       end
     end
+   % breakthree=true%
   end
+  disp(bestU)
+  disp(bestV)
 end

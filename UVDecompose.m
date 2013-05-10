@@ -4,8 +4,10 @@ function UVDecompose(fileName)
   global vdim2 ;
   udim1 = 17770;
   vdim2 = 480189;
+  datestr(now, 'dd-mm-yyyy HH:MM:SS FFF')
   initializeM(fileName);
   uvdMain();
+  datestr(now, 'dd-mm-yyyy HH:MM:SS FFF')
 end
 
 function initializeM(fileName)
@@ -117,7 +119,7 @@ function uvdMain()
 
       breakU=false;
       breakV=false;
-      while !(breakU==true && breakV == true)
+      while ~(breakU==true && breakV == true)
         if (umatrixturn==true) && (breakU==false)
           %disp('umatrixturn')
           %r
@@ -212,6 +214,7 @@ function uvdMain()
       end
 
       S=sprintf('RMSE is: %f',rmse);
+      datestr(now, 'dd-mm-yyyy HH:MM:SS FFF')
       disp(S)
       if(rmse <= prev_rmse)
         diff_prev_rmse_current_rmse=(prev_rmse-rmse);

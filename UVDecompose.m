@@ -1,10 +1,9 @@
 
 function UVDecompose(fileName)
   global udim1;
-  udim1 = 480189;
-  %udim1 = 4801;
   global vdim2 ;
-  vdim2 = 17770;
+  udim1 = 17770;
+  vdim2 = 480189;
   initializeM(fileName);
   uvdMain();
 end
@@ -13,16 +12,16 @@ function initializeM(fileName)
   global mmatrix;
   global udim1;
   global vdim2;
-  global nullRating;
   %Indicates the movie is not rated
-  nullRating = -10000;
-  mmatrix = ones(udim1, vdim2)*(nullRating);
+  mmatrix = sparse(udim1, vdim2);
   global validUsers;
   validUsers = zeros(1, udim1);
 
   fid = fopen(fileName);
   tline = fgets(fid);
   userNum = 1;
+  bulkSize = 1000;
+  bulk_rating_update = zeros(udim1, bulkSize);
   while ischar(tline)
     %tline
     pos = 1;
@@ -33,19 +32,45 @@ function initializeM(fileName)
     validUsers(1, userNum) = userId;
 
     [movies, count, errmsg, nextIndex] = sscanf(tline(pos:length(tline)),'%d');
-    if(count ~= 0)
-      pos = pos+nextIndex;
-      [ratings, count, errmsg, nextIndex] = sscanf(tline(pos:length(tline)),'%f');
-      sz = size(movies);
-      for i = 1:sz(1)
-        mmatrix(userNum, movies(i,1)) = ratings(i,1);
+    pos = pos+nextIndex;
+    [ratings, count, errmsg, nextIndex] = sscanf(tline(pos:length(tline)),'%f');
+    sz = size(movies);
+
+    for i = 1:sz(1)
+      bulkIndex = mod(userNum, bulkSize);
+      if(bulkIndex == 0)
+        bulkIndex = bulkSize;
       end
-      pos = pos+nextIndex;
+      if (ratings(i,1) == 0) 
+        %This is done to distinguish between unrated and normalized ratings with value 0.
+        %Unrated movies will have value 0 in sparse matrix
+        bulk_rating_update(movies(i,1), bulkIndex) = 0.0001;
+      else
+        bulk_rating_update(movies(i,1), bulkIndex) = ratings(i,1);
+      end
     end
+
+    if(userNum == vdim2 && mod(userNum, bulkSize) ~= 0)
+      %We have scanned the entire list. So we have to flush out bulk entries into sparse matrix mmatrix
+      startUserNum = userNum - mod(userNum, bulkSize) + 1;
+      mmatrix(:, startUserNum:(userNum) ) = bulk_rating_update(:, 1:mod(userNum, bulkSize));  %Batch update the sparse matrix for users within user BulkSize window
+      disp('Final Bulk update')
+      userNum
+
+    else
+      if(mod(userNum, bulkSize) == 0)
+        mmatrix(:, (userNum-bulkSize+1):(userNum) ) = bulk_rating_update;     %Batch update the sparse matrix for users within user BulkSize window
+        bulk_rating_update = zeros(udim1, bulkSize);
+        %userNum
+
+      end
+    end
+
+    pos = pos+nextIndex;
 
     tline = fgets(fid);
     userNum = userNum +1;
-    userNum
+
   end
 end
 
@@ -55,7 +80,7 @@ function uvdMain()
   %Or we could add a value uniformly chosen from the range −c to +c for some c.
   %We are varying c from -3 to +3.%}
 
-  c=-4;
+  c=-3;
   prev_rmse=-10;
   a=3;
   d=5;
@@ -65,14 +90,13 @@ function uvdMain()
   global vdim2;
   global mmatrix;
   global validUsers;
-  global nullRating;
   global bestU;
   global bestV;
 
   umatrixturn=true;
 
   while true
-    if c<4
+    if c<3
       c = c+1;
       breakthree=false;
     else
@@ -95,15 +119,15 @@ function uvdMain()
       breakV=false;
       while !(breakU==true && breakV == true)
         if (umatrixturn==true) && (breakU==false)
-          disp('umatrixturn')
-          r
-          s
+          %disp('umatrixturn')
+          %r
+          %s
           umatrix(r,s)=0;
           numerator=0;
           numeratorsummationterm=0;
           denominator=0;
           for j = 1:vdim2
-            if mmatrix(r,j) > (nullRating+1)
+            if mmatrix(r,j) ~= 0
               for k=1:d
                 if k~=s
                   numeratorsummationterm = numeratorsummationterm+(umatrix(r,k)*vmatrix(k,j));
@@ -113,8 +137,8 @@ function uvdMain()
               denominator=denominator+(vmatrix(s,j)*vmatrix(s,j));
             end
           end
-          numerator
-          denominator
+          %numerator
+          %denominator
 
           umatrix(r,s)=numerator/denominator;
           if s~=d
@@ -130,19 +154,19 @@ function uvdMain()
 
           umatrixturn=false
         end
-        umatrixturn
-        breakV
+        %umatrixturn
+        %breakV
 
         if (umatrixturn==false) && (breakV==false)
-          disp('vmatrixturn')
-          r_v
-          s_v
+          %disp('vmatrixturn')
+          %r_v
+          %s_v
           vmatrix(r_v,s_v)=0;
           numerator_v=0;
           numeratorsummationterm_v=0;
           denominator_v=0;
           for i = 1:udim1
-            if mmatrix(i, s_v) > (nullRating+1)
+            if mmatrix(i, s_v) ~= 0
               for k=1:d
                 if k~=r_v
                   numeratorsummationterm_v=numeratorsummationterm_v+(umatrix(i,k)*vmatrix(k,s_v));
@@ -153,8 +177,8 @@ function uvdMain()
             end
           end
 
-          numerator_v
-          denominator_v
+          %numerator_v
+          %denominator_v
           vmatrix(r_v,s_v)=numerator_v/denominator_v;
 
           if r_v~=d
@@ -172,27 +196,21 @@ function uvdMain()
         umatrixturn=true;
       end
       %{RMSE CODE%}
-      pmatrix=umatrix*vmatrix;
+      pmatrix = sparse(udim1, vdim2);
 
       sz = size(pmatrix);
-      for i = 1:sz(1)
-        for j = 1:sz(2)
-          if mmatrix(i,j) > (nullRating+1)
-            pmatrix(i,j) = pmatrix(i,j)-mmatrix(i,j);
-          end
-        end
-      end
-
       rmse=0;
-
       for i = 1:sz(1)
+        bulk_p_update = zeros(1, vdim2);
         for j = 1:sz(2)
-          %pmatrix(i,j)=pmatrix(i,j)-mmatrix(i,j);
-          if mmatrix(i,j)> (nullRating+1)
-            rmse = rmse + (pmatrix(i,j)*pmatrix(i,j));
+          if mmatrix(i,j) ~= 0
+            pmatrix_entry = dot(umatrix(i),vmatrix(j));
+            err = pmatrix_entry-mmatrix(i,j);
+            rmse = rmse + (err*err);
           end
         end
       end
+
       S=sprintf('RMSE is: %f',rmse);
       disp(S)
       if(rmse <= prev_rmse)
@@ -205,10 +223,12 @@ function uvdMain()
         prev_rmse=rmse;
         bestU=umatrix;
         bestV=vmatrix;
+      else
+        disp('RMSE does not decrease');
       end
     end
-   % breakthree=true%
+    % breakthree=true%
   end
-  disp(bestU)
-  disp(bestV)
+  %disp(bestU)
+  %disp(bestV)
 end
